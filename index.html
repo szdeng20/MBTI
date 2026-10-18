@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Study & Career Style Quiz (MBTI-style)</title>
+<style>
+:root{--bg:#eef3f6;--card:#ffffff;--ink:#12263a;--mute:#5a6b7b;--acc:#0e8a7d;--acc2:#f2b134;--line:#d5dfe6;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1b26;--card:#172635;--ink:#e8f0f5;--mute:#98a9b8;--acc:#3fc2b2;--acc2:#f2b134;--line:#29404f}}
+:root[data-theme="dark"]{--bg:#0f1b26;--card:#172635;--ink:#e8f0f5;--mute:#98a9b8;--acc:#3fc2b2;--acc2:#f2b134;--line:#29404f}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Avenir Next","Trebuchet MS","Segoe UI",sans-serif;line-height:1.5}
+.wrap{max-width:640px;margin:0 auto;padding:24px 18px 48px}
+h1{font-size:1.7rem;line-height:1.2;margin:0 0 8px}
+p{margin:0 0 14px}
+.mute{color:var(--mute);font-size:.92rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px}
+button{font:inherit;cursor:pointer;border-radius:10px;border:2px solid var(--line);background:var(--card);color:var(--ink);padding:14px 16px;text-align:left;width:100%;margin-bottom:10px}
+button:hover{border-color:var(--acc)}
+button:focus-visible{outline:3px solid var(--acc2);outline-offset:2px}
+.go{background:var(--acc);border-color:var(--acc);color:#fff;text-align:center;font-weight:700}
+:root[data-theme="dark"] .go{color:#08201c}
+.bar{height:8px;background:var(--line);border-radius:6px;overflow:hidden;margin-bottom:18px}
+.bar i{display:block;height:100%;width:0;background:var(--acc);transition:width .25s}
+.q{font-size:1.2rem;font-weight:700;margin:0 0 16px}
+.code{font-size:3rem;font-weight:800;letter-spacing:.12em;color:var(--acc);margin:0;line-height:1}
+.axis{margin:10px 0}
+.axis div.l{display:flex;justify-content:space-between;font-size:.88rem}
+.track{height:10px;background:var(--line);border-radius:6px;position:relative;margin-top:3px}
+.track i{position:absolute;top:0;bottom:0;background:var(--acc2);border-radius:6px}
+h2{font-size:1.1rem;margin:22px 0 8px}
+ul{padding-left:20px;margin:0 0 8px}
+li{margin-bottom:6px}
+.note{border-left:4px solid var(--acc2);padding:8px 12px;font-size:.9rem;color:var(--mute);margin-top:20px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="intro" class="card">
+    <h1>What kind of learner are you?</h1>
+    <p>16 quick either/or questions. Pick the option that feels more like you most of the time, not the one you wish was true. You get a four-letter type, study tips and career ideas.</p>
+    <p class="mute">Takes about 3 minutes. A fun starting point for reflection, not a diagnosis.</p>
+    <button class="go" id="start">Start the quiz</button>
+  </div>
+  <div id="quiz" class="card" style="display:none">
+    <div class="bar"><i id="fill"></i></div>
+    <p class="mute" id="count"></p>
+    <p class="q" id="qtext"></p>
+    <button id="a"></button>
+    <button id="b"></button>
+  </div>
+  <div id="result" class="card" style="display:none"></div>
+</div>
+<script>
+var Q=[
+["EI","After a busy week, I recharge by meeting friends","After a busy week, I recharge with quiet time alone","E"],
+["EI","In class I think out loud while talking","In class I think first, then speak","E"],
+["EI","I study best with a group","I study best on my own","E"],
+["EI","I chat easily with new people","I take time to warm up to new people","E"],
+["SN","I like facts, examples and clear details","I like big ideas and patterns","S"],
+["SN","I trust what I have seen and tried","I trust my hunches about what could be","S"],
+["SN","With a new tool, I follow the steps","With a new tool, I explore and figure it out","S"],
+["SN","I focus on what is real and practical now","I focus on possibilities and the future","S"],
+["TF","I decide with logic and fairness","I decide with people's feelings and values","T"],
+["TF","I give honest feedback, even if blunt","I give feedback gently to protect feelings","T"],
+["TF","I would rather be right","I would rather keep the peace","T"],
+["TF","In conflict, I analyse the problem","In conflict, I think about how everyone feels","T"],
+["JP","I plan early and finish ahead of deadlines","I work best close to the deadline","J"],
+["JP","I like a fixed plan","I like to keep options open","J"],
+["JP","My notes and desk are organised","My notes and desk are flexible, a bit messy","J"],
+["JP","For trips, I make an itinerary","For trips, I go with the flow","J"]
+];
+var T={
+INTJ:["The Strategist","engineering, data science, research, strategy consulting"],
+INTP:["The Thinker","software development, scientific research, analytics, academia"],
+ENTJ:["The Leader","management, entrepreneurship, project management, law"],
+ENTP:["The Debater","product design, marketing, innovation, start-ups"],
+INFJ:["The Advocate","counselling, teaching, healthcare, social work"],
+INFP:["The Mediator","writing, design, psychology, non-profit work"],
+ENFJ:["The Mentor","teaching, HR, training and development, community work"],
+ENFP:["The Explorer","media, UX design, marketing, counselling"],
+ISTJ:["The Organiser","accounting, engineering, logistics, compliance"],
+ISFJ:["The Protector","nursing, healthcare, administration, education support"],
+ESTJ:["The Manager","operations, business management, banking, public service"],
+ESFJ:["The Host","nursing, events, HR, customer success"],
+ISTP:["The Craftsperson","mechanical or electrical engineering, cybersecurity, tech support, aviation"],
+ISFP:["The Artist","design, culinary arts, physiotherapy, photography"],
+ESTP:["The Doer","sales, sports and fitness, entrepreneurship, emergency services"],
+ESFP:["The Performer","hospitality, performing arts, tourism, public relations"]
+};
+var S={
+E:"Study with a group or explain topics aloud, but book solo review time so you do not only socialise.",
+I:"Block quiet focus time and write summaries. Practise speaking up in tutorials so your ideas get heard.",
+S:"Learn from worked examples and practice questions, then step back to see how topics connect.",
+N:"Start from the big picture and link ideas, then check details with examples so no facts slip through.",
+T:"Use logic maps and cause-and-effect charts. Remember teammates also need kind, specific feedback.",
+F:"Tie topics to real people and purpose. Do not let worry about others eat into your study time.",
+J:"Plan backwards from deadlines and use checklists. Leave buffer days for surprises.",
+P:"Use short sprints and external deadlines, such as a study buddy. Fix a start time even if you stay flexible."
+};
+var i=0,score={E:0,I:0,S:0,N:0,T:0,F:0,J:0,P:0};
+function $(id){return document.getElementById(id)}
+function show(){
+  var q=Q[i];
+  $("count").textContent="Question "+(i+1)+" of "+Q.length;
+  $("fill").style.width=(i/Q.length*100)+"%";
+  $("qtext").textContent="Which sounds more like you?";
+  $("a").textContent=q[1];$("b").textContent=q[2];
+}
+function pick(isA){
+  var q=Q[i],first=q[3],second=q[0].replace(first,"");
+  score[isA?first:second]++;
+  i++;
+  if(i<Q.length){show()}else{finish()}
+}
+function finish(){
+  $("quiz").style.display="none";
+  var pairs=["EI","SN","TF","JP"],code="",bars="",tips="";
+  pairs.forEach(function(p){
+    var a=p[0],b=p[1],w=score[a]>score[b]?a:b;
+    code+=w;
+    var pct=score[a]/4*100;
+    bars+='<div class="axis"><div class="l"><span>'+a+" "+score[a]+'</span><span>'+score[b]+" "+b+'</span></div><div class="track"><i style="left:0;width:'+pct+'%"></i></div></div>';
+    tips+="<li><b>"+w+":</b> "+S[w]+"</li>";
+  });
+  var t=T[code];
+  $("result").innerHTML='<p class="mute">Your type</p><p class="code">'+code+'</p><p style="font-size:1.2rem;font-weight:700;margin-top:6px">'+t[0]+'</p>'+bars+
+  '<h2>Study tips for you</h2><ul>'+tips+'</ul>'+
+  '<h2>Career areas to explore</h2><p>'+t[1].charAt(0).toUpperCase()+t[1].slice(1)+'.</p>'+
+  '<h2>Career tips for any student</h2><ul><li>Match careers to your skills and interests first. Your type is only one clue.</li><li>Try things early: internships, projects, short courses and talking to people in the job.</li><li>Build a portfolio of real work, and keep learning after graduation.</li></ul>'+
+  '<div class="note">Ties on a scale go to I, N, F or P. MBTI-style quizzes are popular for reflection, but research does not support them for predicting job success. Treat the result as a conversation starter.</div>'+
+  '<button class="go" id="again" style="margin-top:18px">Retake the quiz</button>';
+  $("result").style.display="block";
+  $("again").onclick=function(){
+    i=0;for(var k in score)score[k]=0;
+    $("result").style.display="none";$("quiz").style.display="block";show();
+  };
+}
+$("start").onclick=function(){$("intro").style.display="none";$("quiz").style.display="block";show()};
+$("a").onclick=function(){pick(true)};
+$("b").onclick=function(){pick(false)};
+</script>
+</body>
+</html>
